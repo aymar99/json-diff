@@ -21,6 +21,7 @@ public class JsonDiffAsserter implements JsonDiffViewer {
 
     @Override
     public void matchingProperty(Path path, JsonDiff diff) {
+        System.out.println("MATCH"+path.toString());
         for (final var asserter : matchingPropertyAsserters) {
             if (asserter.done(diff.path())) {
                 return;
