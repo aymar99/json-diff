@@ -19,17 +19,27 @@ public class LenientJsonArrayPartialMatcher implements PartialJsonMatcher<ArrayN
             final var diffMap = new HashMap<Integer, Map<Integer, JsonDiff>>();
             for (int i = 0; i < mismatches.getExpectedMissing().size(); i++) {
                 final var map = new HashMap<Integer, JsonDiff>();
+                var expectedMissingIndex=mismatches.getExpectedMissing().get(i).getIndex();
+                var expectedMissing=mismatches.getExpectedMissing().get(i);
                 for (var x = 0; x < mismatches.getActualMissing().size(); ++x) {
-                    map.put(mismatches.getActualMissing().get(x).getIndex(), jsonMatcher.diff(path.add(Path.PathItem.of(mismatches.getExpectedMissing().get(i).getIndex())), mismatches.getExpectedMissing().get(i).getJsonNode(), mismatches.getActualMissing().get(x).getJsonNode()));
+                    var actualMissingIndex=mismatches.getActualMissing().get(x).getIndex();
+                    var actualMissing=mismatches.getActualMissing().get(x);
+                    map.put(actualMissingIndex, jsonMatcher.diff(path.add(Path.PathItem.of(expectedMissingIndex)),
+                            expectedMissing.getJsonNode(),actualMissing.getJsonNode()));
                 }
-                diffMap.put(mismatches.getExpectedMissing().get(i).getIndex(), map);
+                diffMap.put(expectedMissingIndex, map);
             }
 
-            final var entrySortedByBestMatch = diffMap.entrySet().stream().sorted(Comparator.comparingDouble(this::maxSimilarityRate).reversed()).toList();
+            final var entrySortedByBestMatch =
+                    diffMap.entrySet().stream()
+                            .sorted(Comparator.comparingDouble(this::maxSimilarityRate).reversed())
+                            .toList();
             final var alreadyMatchedIndex = new HashSet<Integer>();
 
             for (final var entry : entrySortedByBestMatch) {
-                final var matchedItem = entry.getValue().entrySet().stream().filter(e -> !alreadyMatchedIndex.contains(e.getKey())).max(Comparator.comparingDouble(e -> e.getValue().similarityRate()));
+                final var matchedItem = entry.getValue().entrySet().stream()
+                        .filter(e -> !alreadyMatchedIndex.contains(e.getKey()))
+                        .max(Comparator.comparingDouble(e -> e.getValue().similarityRate()));
 
                 if (matchedItem.isEmpty()) {
                     diff.addNoMatch(entry.getKey(), expectedArrayNode.get(entry.getKey()));
