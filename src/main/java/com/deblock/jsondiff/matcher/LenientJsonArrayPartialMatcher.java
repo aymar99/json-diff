@@ -2,12 +2,10 @@ package com.deblock.jsondiff.matcher;
 
 import com.deblock.jsondiff.diff.JsonArrayDiff;
 import com.deblock.jsondiff.diff.JsonDiff;
-import com.deblock.jsondiff.diff.JsonObjectDiff;
 import com.deblock.jsondiff.model.IndexedJsonNode;
 import com.deblock.jsondiff.model.Pair;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -16,7 +14,7 @@ public class LenientJsonArrayPartialMatcher implements PartialJsonMatcher<ArrayN
     @Override
     public JsonDiff jsonDiff(Path path, ArrayNode expectedArrayNode, ArrayNode recievedArrayNode, JsonMatcher jsonMatcher) {
         final var diff = new JsonArrayDiff(path);
-        var mismatches = eliminateEqualJsonArrayNodes(expectedArrayNode, recievedArrayNode, diff, path, jsonMatcher);
+        var mismatches = handleEqualJsonArrayNodeElements(expectedArrayNode, recievedArrayNode, diff, path, jsonMatcher);
         if (!mismatches.getExpectedMissing().isEmpty() || !mismatches.getActualMissing().isEmpty()) {
             final var diffMap = new HashMap<Integer, Map<Integer, JsonDiff>>();
             for (int i = 0; i < mismatches.getExpectedMissing().size(); i++) {
@@ -55,7 +53,7 @@ public class LenientJsonArrayPartialMatcher implements PartialJsonMatcher<ArrayN
         return entry.getValue().values().stream().mapToDouble(JsonDiff::similarityRate).max().orElse(0);
     }
 
-    private Pair<List<IndexedJsonNode>, List<IndexedJsonNode>> eliminateEqualJsonArrayNodes(ArrayNode expectedArrayNode, ArrayNode actualArrayNode, JsonArrayDiff diff, Path path, JsonMatcher jsonMatcher) {
+    private Pair<List<IndexedJsonNode>, List<IndexedJsonNode>> handleEqualJsonArrayNodeElements(ArrayNode expectedArrayNode, ArrayNode actualArrayNode, JsonArrayDiff diff, Path path, JsonMatcher jsonMatcher) {
         List<IndexedJsonNode> expectedMissing = new ArrayList<>();
         List<IndexedJsonNode> actualMissing = new ArrayList<>();
 
